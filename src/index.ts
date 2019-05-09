@@ -115,14 +115,6 @@ async function main() {
 		}
 		drawWithEvent(event)
 	})
-
-	// function draw() {
-	// 	ctx.fillRect(0, 0, cnv.width, cnv.height)
-	// 	window.requestAnimationFrame(draw)
-	// }
-
-	// draw()
-
 }
 
 main()
