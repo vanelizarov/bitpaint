@@ -89,6 +89,7 @@ body {
   grid-template-columns: repeat(12, 20px);
   grid-template-rows: repeat(22, 20px);
   grid-auto-flow: row;
+  margin-bottom: 16px;
 }
 
 .toolbar .color-picker .color {
@@ -106,6 +107,30 @@ body {
   left: 0;
   border: 2px solid var(--light-blue);
   display: block;
+}
+
+.toolbar .drawing-tools {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.toolbar .drawing-tools .tool {
+  width: 24px;
+  padding: 2px 0;
+  background-color: transparent;
+  color: var(--cyan);
+  border: 2px solid var(--cyan);
+  outline: none;
+  cursor: pointer;
+}
+
+.toolbar .drawing-tools .tool:not(:last-child) {
+  margin-right: 8px;
+}
+
+.toolbar .drawing-tools .tool.tool_active {
+  background-color: var(--cyan);
+  color: var(--medium-blue);
 }
 
 .footer {
