@@ -29,17 +29,17 @@ let activeColorNode: HTMLElement
 let activeColor: string
 let isDrawing = false
 
-function getRelativePointerPosition(event: MouseEvent): Vec2d {
-	const bounds = cnv.getBoundingClientRect()
+function getRelativePointerPosition(event: MouseEvent, bounds: ClientRect): Vec2d {
 	const mouse = new Vec2d(event.clientX, event.clientY)
-	return new Vec2d(mouse.x - bounds.left, mouse.y - bounds.top)
+	const pos = new Vec2d(mouse.x - bounds.left, mouse.y - bounds.top)
+	return pos
 }
 
 // returns vector that contains INDICIES, not x,y coords
-function getTileToDraw(pos: Vec2d): Vec2d {
+function getTileToDraw(pos: Vec2d, bounds: ClientRect): Vec2d {
 	return new Vec2d(
-		Math.floor(mapValue(pos.x, 0, cnv.width, 0, cols)),
-		Math.floor(mapValue(pos.y, 0, cnv.height, 0, rows))
+		Math.floor(mapValue(pos.x, 0, bounds.width, 0, cols)),
+		Math.floor(mapValue(pos.y, 0, bounds.height, 0, rows))
 	)
 }
 
@@ -48,8 +48,9 @@ function paintTile(tile: Vec2d) {
 }
 
 function drawWithEvent(event: MouseEvent) {
-	const pos = getRelativePointerPosition(event)
-	const tile = getTileToDraw(pos)
+	const bounds = cnv.getBoundingClientRect()
+	const pos = getRelativePointerPosition(event, bounds)
+	const tile = getTileToDraw(pos, bounds)
 
 	paintTile(tile)
 }
