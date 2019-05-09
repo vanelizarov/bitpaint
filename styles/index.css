@@ -1,0 +1,123 @@
+:root {
+  --dark-blue: rgb(16, 35, 45);
+  --medium-blue: rgb(12, 47, 66);
+  --light-blue: rgb(0, 57,87);
+  --cyan: rgb(118, 255, 249);
+}
+
+* {
+  box-sizing: border-box;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  display: grid;
+  grid-template: 'header header' 40px 'workspace toolbar' auto 'footer footer' 24px / auto 272px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--dark-blue);
+}
+
+.header {
+  grid-area: header;
+  background-color: var(--medium-blue);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--light-blue);
+}
+
+.header .logo {
+  color: var(--cyan);
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.header .io-options {
+  display: inline-flex;
+}
+
+.header .io-options .option {
+  padding: 2px 12px;
+  background-color: transparent;
+  color: var(--cyan);
+  border: 2px solid var(--cyan);
+  outline: none;
+  cursor: pointer;
+}
+
+.header .io-options .option:not(:last-child) {
+  margin-right: 8px;
+}
+
+.workspace {
+  grid-area: workspace;
+  position: relative;
+  overflow: auto;
+}
+
+.workspace .cnv {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate3d(-50%, -50%, 0);
+  z-index: 2;
+}
+
+.toolbar {
+  grid-area: toolbar;
+  background-color: var(--medium-blue);
+  padding: 0 16px;
+  border-left: 1px solid var(--light-blue);
+}
+
+.toolbar .title {
+  color: var(--cyan);
+  margin: 8px 0;
+}
+
+.toolbar .color-picker {
+  display: grid;
+  grid-template-columns: repeat(12, 20px);
+  grid-template-rows: repeat(22, 20px);
+  grid-auto-flow: row;
+}
+
+.toolbar .color-picker .color {
+  cursor: pointer;
+  position: relative;
+}
+
+.toolbar .color-picker .color:hover::after,
+.toolbar .color-picker .color.color_active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: 2px solid var(--light-blue);
+  display: block;
+}
+
+.footer {
+  grid-area: footer;
+  background-color: var(--medium-blue);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  border-top: 1px solid var(--light-blue);
+}
+
+.footer .gh-link, .copyright {
+  color: var(--cyan);
+}
