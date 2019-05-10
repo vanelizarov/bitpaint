@@ -52,6 +52,7 @@ body {
   border: 2px solid var(--cyan);
   outline: none;
   cursor: pointer;
+  user-select: none;
 }
 
 .header .io-options .option:not(:last-child) {
@@ -82,6 +83,7 @@ body {
 .toolbar .title {
   color: var(--cyan);
   margin: 8px 0;
+  user-select: none;
 }
 
 .toolbar .color-picker {
