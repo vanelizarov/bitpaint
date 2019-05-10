@@ -20,6 +20,10 @@ export function getCanvas(): HTMLCanvasElement {
 	return $('.workspace .cnv') as HTMLCanvasElement
 }
 
+export function getDrawingTools(): HTMLDivElement {
+	return $('.drawing-tools') as HTMLDivElement
+}
+
 export function createColorNode(color: Color): HTMLDivElement {
 	const node = document.createElement('div')
 	node.className = 'color'

@@ -1,12 +1,25 @@
 import { getColors } from './colors.js'
-import { getColorPicker, createColorNode, getCanvas, getWorkspace, createGrid } from './dom.js'
-import { Vec2d, mapValue } from './math.js'
+import {
+	getColorPicker,
+	createColorNode,
+	getCanvas,
+	getWorkspace,
+	createGrid,
+	getDrawingTools
+} from './dom.js'
+import {
+	ACTIVE_COLOR_CLASSNAME,
+	META_KEY,
+	CTRL_KEY,
+	MIN_SCALE,
+	MAX_SCALE,
+	ACTIVE_DRAWING_TOOL_CLASSNAME
+} from './constants.js'
+import { Tool, Pencil, Liner } from './tools.js'
+import state from './state.js'
 
 const workspace = getWorkspace()
-const META_KEY = 'Meta'
-const CTRL_KEY = 'Control'
-const MIN_SCALE = 0.3
-const MAX_SCALE = 6.0
+
 let ctrlPressed = false
 let currentScale = 1
 
@@ -17,43 +30,22 @@ function scaleCanvas(scale: number) {
 }
 
 const cnv = getCanvas()
-const cols = 16
-const rows = 16
-const grid = createGrid(cnv, cols, rows)
-const tileSize = cnv.width / cols
+state.cols = 16
+state.rows = 16
+const grid = createGrid(cnv, state.cols, state.rows)
+state.tileSize = cnv.width / state.cols
 
 const ctx = cnv.getContext('2d')
-const ACTIVE_COLOR_CLASSNAME = 'color_active'
 const colorPicker = getColorPicker()
 let activeColorNode: HTMLElement
-let activeColor: string
-let isDrawing = false
 
-function getRelativePointerPosition(event: MouseEvent, bounds: ClientRect): Vec2d {
-	const mouse = new Vec2d(event.clientX, event.clientY)
-	const pos = new Vec2d(mouse.x - bounds.left, mouse.y - bounds.top)
-	return pos
-}
-
-// returns vector that contains INDICIES, not x,y coords
-function getTileToDraw(pos: Vec2d, bounds: ClientRect): Vec2d {
-	return new Vec2d(
-		Math.floor(mapValue(pos.x, 0, bounds.width, 0, cols)),
-		Math.floor(mapValue(pos.y, 0, bounds.height, 0, rows))
-	)
-}
-
-function paintTile(tile: Vec2d) {
-	ctx.fillRect(tile.x * tileSize, tile.y * tileSize, tileSize, tileSize)
-}
-
-function drawWithEvent(event: MouseEvent) {
-	const bounds = cnv.getBoundingClientRect()
-	const pos = getRelativePointerPosition(event, bounds)
-	const tile = getTileToDraw(pos, bounds)
-
-	paintTile(tile)
-}
+const tools = new Map<string, Tool>([
+	['pencil', new Pencil(cnv, state)],
+	['liner', new Liner(cnv, state)]
+])
+const drawingTools = getDrawingTools()
+let activeTool = tools.get('pencil')
+let activeDrawingTool: HTMLButtonElement
 
 async function main() {
 	const colors = await getColors()
@@ -65,7 +57,7 @@ async function main() {
 
 	activeColorNode = colorPicker.children[0] as HTMLElement
 	activeColorNode.classList.add(ACTIVE_COLOR_CLASSNAME)
-	activeColor = activeColorNode.dataset.color
+	state.activeColor = activeColorNode.dataset.color
 
 	colorPicker.addEventListener('click', event => {
 		const colorNode = event.target as HTMLElement
@@ -74,22 +66,22 @@ async function main() {
 		activeColorNode.classList.remove(ACTIVE_COLOR_CLASSNAME)
 		activeColorNode = colorNode
 		activeColorNode.classList.add(ACTIVE_COLOR_CLASSNAME)
-		activeColor = colorHex
-		ctx.fillStyle = activeColor
+		state.activeColor = colorHex
+		ctx.fillStyle = state.activeColor
 	})
+
+
 
 	window.addEventListener('keydown', event => {
 		if (event.key === CTRL_KEY || event.key === META_KEY) {
 			ctrlPressed = true
 		}
 	})
-
 	window.addEventListener('keyup', event => {
 		if (event.key === CTRL_KEY || event.key === META_KEY) {
 			ctrlPressed = false
 		}
 	})
-
 	workspace.addEventListener('wheel', event => {
 		if (ctrlPressed) {
 			const step = event.deltaY < 0 ? 0.01 : -0.01
@@ -100,21 +92,25 @@ async function main() {
 			scaleCanvas(currentScale)
 		}
 	})
-
-
 	workspace.insertBefore(grid, cnv)
 
 
-	cnv.addEventListener('mousedown', event => {
-		isDrawing = true
-		drawWithEvent(event)
-	})
-	document.addEventListener('mouseup', _ => isDrawing = false)
-	document.addEventListener('mousemove', event => {
-		if (!isDrawing) {
-			return
-		}
-		drawWithEvent(event)
+
+	activeDrawingTool = drawingTools.children[0] as HTMLButtonElement
+	activeDrawingTool.classList.add(ACTIVE_DRAWING_TOOL_CLASSNAME)
+	activeTool.activate()
+
+	drawingTools.addEventListener('click', event => {
+		activeTool.suspend()
+
+		const colorNode = event.target as HTMLButtonElement
+		const id = colorNode.dataset.toolId
+
+		activeTool = tools.get(id)
+		activeTool.activate()
+		activeDrawingTool.classList.remove(ACTIVE_DRAWING_TOOL_CLASSNAME)
+		activeDrawingTool = colorNode
+		activeDrawingTool.classList.add(ACTIVE_DRAWING_TOOL_CLASSNAME)
 	})
 }
 
