@@ -1,6 +1,6 @@
 import { Vec2d, calcTilesForLine } from './math.js'
 import { paintTile, getRelativePointerPosition, getTileToDraw } from './drawing.js'
-import { State } from './state.js'
+import state from './state.js'
 
 export interface Tool {
 	activate()
@@ -8,7 +8,6 @@ export interface Tool {
 }
 
 export class Pencil implements Tool {
-	private _state: State
 	private _cnv: HTMLCanvasElement
 	private _ctx: CanvasRenderingContext2D
 	private _isDrawing = false
@@ -20,7 +19,7 @@ export class Pencil implements Tool {
 
 	private _onMouseUp = _ => this._isDrawing = false
 
-	private _onMouseMove = event => {
+	private _onMouseMove = (event: MouseEvent) => {
 		if (this._isDrawing) {
 			this._drawWithEvent(event)
 		}
@@ -32,17 +31,20 @@ export class Pencil implements Tool {
 		const tile = getTileToDraw({
 			pos,
 			bounds,
-			cols: this._state.cols,
-			rows: this._state.rows
+			cols: state.cols,
+			rows: state.rows
 		})
 
-		paintTile({ ctx: this._ctx, tile, tileSize: this._state.tileSize })
+		paintTile({ ctx: this._ctx, tile, tileSize: state.tileSize })
+		state.tiles.push({
+			pos: tile,
+			color: state.activeColor
+		})
 	}
 
-	constructor(cnv: HTMLCanvasElement, state: State) {
+	constructor(cnv: HTMLCanvasElement) {
 		this._cnv = cnv
 		this._ctx = cnv.getContext('2d')
-		this._state = state
 	}
 
 	activate() {
@@ -60,7 +62,6 @@ export class Pencil implements Tool {
 }
 
 export class Liner implements Tool {
-	private _state: State
 	private _cnv: HTMLCanvasElement
 	private _ctx: CanvasRenderingContext2D
 
@@ -76,9 +77,9 @@ export class Liner implements Tool {
 	private _draw = () => {
 		this._clear()
 
-		this._octx.fillStyle = this._state.activeColor
+		this._octx.fillStyle = state.activeColor
 		for (const tile of this._tiles) {
-			paintTile({ ctx: this._octx, tile, tileSize: this._state.tileSize })
+			paintTile({ ctx: this._octx, tile, tileSize: state.tileSize })
 		}
 
 		this._req = window.requestAnimationFrame(this._draw)
@@ -88,24 +89,26 @@ export class Liner implements Tool {
 		this._octx.clearRect(0, 0, this._overlay.width, this._overlay.height)
 	}
 
-	private _onMouseDown = event => {
+	private _onMouseDown = (event: MouseEvent) => {
 		this._overlay.style.transform = this._cnv.style.transform
 
-		if (!this._isMoving) {
-			this._isMoving = true
+		this._isMoving = true
 
-			const bounds = this._cnv.getBoundingClientRect()
-			const pos = getRelativePointerPosition(event, bounds)
-			this._v1 = getTileToDraw({ pos, bounds, cols: this._state.cols, rows: this._state.rows })
+		const bounds = this._cnv.getBoundingClientRect()
+		const pos = getRelativePointerPosition(event, bounds)
+		this._v1 = getTileToDraw({ pos, bounds, cols: state.cols, rows: state.rows })
 
-			this._tiles = [this._v1]
-			this._req = window.requestAnimationFrame(this._draw)
-		} else {
+		this._tiles = [this._v1]
+		this._req = window.requestAnimationFrame(this._draw)
+	}
+
+	private _onMouseUp = (event: MouseEvent) => {
+		if (this._isMoving) {
 			this._isMoving = false
 
 			const bounds = this._cnv.getBoundingClientRect()
 			const pos = getRelativePointerPosition(event, bounds)
-			const v2 = getTileToDraw({ pos, bounds, cols: this._state.cols, rows: this._state.rows })
+			const v2 = getTileToDraw({ pos, bounds, cols: state.cols, rows: state.rows })
 			const tiles = calcTilesForLine(this._v1, v2)
 
 			this._tiles = []
@@ -115,30 +118,28 @@ export class Liner implements Tool {
 			this._clear()
 
 			for (const tile of tiles) {
-				paintTile({ ctx: this._ctx, tile, tileSize: this._state.tileSize })
+				paintTile({ ctx: this._ctx, tile, tileSize: state.tileSize })
+				state.tiles.push({
+					pos: tile,
+					color: state.activeColor
+				})
 			}
 		}
 	}
-
-	// private _onMouseUp = _ => {
-
-	// }
 
 	private _onMouseMove = event => {
 		if (this._isMoving) {
 			const bounds = this._cnv.getBoundingClientRect()
 			const pos = getRelativePointerPosition(event, bounds)
-			const v2 = getTileToDraw({ pos, bounds, cols: this._state.cols, rows: this._state.rows })
+			const v2 = getTileToDraw({ pos, bounds, cols: state.cols, rows: state.rows })
 
 			this._tiles = calcTilesForLine(this._v1, v2)
 		}
 	}
 
-	constructor(cnv: HTMLCanvasElement, state: State) {
+	constructor(cnv: HTMLCanvasElement) {
 		this._cnv = cnv
 		this._ctx = cnv.getContext('2d')
-
-		this._state = state
 
 		this._overlay = document.createElement('canvas')
 		this._octx = this._overlay.getContext('2d')
@@ -154,19 +155,15 @@ export class Liner implements Tool {
 		this._cnv.parentNode.appendChild(this._overlay)
 
 		this._overlay.addEventListener('mousedown', this._onMouseDown)
+		document.addEventListener('mouseup', this._onMouseUp)
 		document.addEventListener('mousemove', this._onMouseMove)
 	}
 
 	suspend() {
-		this._isMoving = false
-		this._tiles = []
-		this._v1 = null
-		window.cancelAnimationFrame(this._req)
-		this._req = null
-		this._clear()
 		this._cnv.parentNode.removeChild(this._overlay)
 
 		this._overlay.removeEventListener('mousedown', this._onMouseDown)
+		document.removeEventListener('mouseup', this._onMouseUp)
 		document.removeEventListener('mousemove', this._onMouseMove)
 	}
 }

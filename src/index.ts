@@ -1,4 +1,5 @@
 import { getColors } from './colors.js'
+
 import {
 	getColorPicker,
 	createColorNode,
@@ -7,6 +8,7 @@ import {
 	createGrid,
 	getDrawingTools
 } from './dom.js'
+
 import {
 	ACTIVE_COLOR_CLASSNAME,
 	META_KEY,
@@ -15,7 +17,11 @@ import {
 	MAX_SCALE,
 	ACTIVE_DRAWING_TOOL_CLASSNAME
 } from './constants.js'
+
 import { Tool, Pencil, Liner } from './tools.js'
+
+import { exportAsImage, exportAsSvg } from './io.js'
+
 import state from './state.js'
 
 const workspace = getWorkspace()
@@ -40,12 +46,18 @@ const colorPicker = getColorPicker()
 let activeColorNode: HTMLElement
 
 const tools = new Map<string, Tool>([
-	['pencil', new Pencil(cnv, state)],
-	['liner', new Liner(cnv, state)]
+	['pencil', new Pencil(cnv)],
+	['liner', new Liner(cnv)]
 ])
 const drawingTools = getDrawingTools()
 let activeTool = tools.get('pencil')
 let activeDrawingTool: HTMLButtonElement
+
+window['exp'] = function () {
+	exportAsSvg(state)
+	exportAsImage(state, 'image/png')
+	exportAsImage(state, 'image/jpeg')
+}
 
 async function main() {
 	const colors = await getColors()
