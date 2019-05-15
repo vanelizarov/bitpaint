@@ -6,7 +6,10 @@ import {
 	getCanvas,
 	getWorkspace,
 	createGrid,
-	getDrawingTools
+	getDrawingTools,
+	getExportModal,
+	getCurrentExportOption,
+	getHeader
 } from './dom.js'
 
 import {
@@ -53,11 +56,10 @@ const drawingTools = getDrawingTools()
 let activeTool = tools.get('pencil')
 let activeDrawingTool: HTMLButtonElement
 
-window['exp'] = function () {
-	exportAsSvg(state)
-	exportAsImage(state, 'image/png')
-	exportAsImage(state, 'image/jpeg')
-}
+const exportModal = getExportModal()
+let exportType = 'png'
+
+const header = getHeader()
 
 async function main() {
 	const colors = await getColors()
@@ -124,6 +126,51 @@ async function main() {
 		activeDrawingTool = colorNode
 		activeDrawingTool.classList.add(ACTIVE_DRAWING_TOOL_CLASSNAME)
 	})
+
+
+
+	exportModal.addEventListener('click', event => {
+		const target = event.target as HTMLElement
+		const data = target.dataset
+
+		if (target.classList.contains('option')) {
+			const current = getCurrentExportOption()
+			if (target === current) {
+				return
+			}
+
+			exportType = data.exportType
+			current.classList.remove('option_checked')
+			target.classList.add('option_checked')
+		} else if (target.classList.contains('action')) {
+			if (data.action === 'save') {
+				exportModal.style.display = 'none'
+				if (exportType === 'svg') {
+					exportAsSvg(state)
+				} else if (exportType === 'png') {
+					exportAsImage(state, 'image/png')
+				} else if (exportType === 'jpeg') {
+					exportAsImage(state, 'image/jpeg')
+				}
+			} else {
+				exportModal.style.display = 'none'
+			}
+		}
+	})
+
+
+
+	header.addEventListener('click', event => {
+		const target = event.target as HTMLElement
+
+		if (target.classList.contains('option')) {
+			const option = target.dataset.option
+			if (option === 'save') {
+				exportModal.style.display = 'flex'
+			}
+		}
+	})
+
 }
 
 main()

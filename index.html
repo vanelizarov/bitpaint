@@ -21,8 +21,10 @@
 		<header class="header">
 			<h1 class="logo">bitpaint</h1>
 			<div class="io-options">
-				<button class="option">save</button>
-				<button class="option">load</button>
+				<button class="option"
+								data-option="save">save</button>
+				<button class="option"
+								data-option="load">load</button>
 			</div>
 		</header>
 		<main class="workspace">
@@ -49,6 +51,33 @@
 			<a href="https://github.com/vanelizarov/bitpaint"
 				 class="gh-link">Github</a>
 		</footer>
+
+		<div id="export-modal"
+				 class="modal-backdrop">
+			<div class="modal modal_export">
+				<h2 class="title">save as...</h2>
+				<div class="options">
+					<div class="option option_checked"
+							 data-export-type="png">
+						png
+					</div>
+					<div class="option"
+							 data-export-type="jpeg">
+						jpeg
+					</div>
+					<div class="option"
+							 data-export-type="svg">
+						svg
+					</div>
+				</div>
+				<div class="actions">
+					<button class="action"
+									data-action="cancel">cancel</button>
+					<button class="action"
+									data-action="save">save</button>
+				</div>
+			</div>
+		</div>
 	</body>
 
 </html>

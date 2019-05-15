@@ -24,6 +24,18 @@ export function getDrawingTools(): HTMLDivElement {
 	return $('.drawing-tools') as HTMLDivElement
 }
 
+export function getExportModal(): HTMLDivElement {
+	return $('#export-modal') as HTMLDivElement
+}
+
+export function getCurrentExportOption(): HTMLDivElement {
+	return $('#export-modal .option_checked') as HTMLDivElement
+}
+
+export function getHeader(): HTMLDivElement {
+	return $('.header') as HTMLDivElement
+}
+
 export function createColorNode(color: Color): HTMLDivElement {
 	const node = document.createElement('div')
 	node.className = 'color'
